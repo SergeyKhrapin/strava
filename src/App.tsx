@@ -8,13 +8,10 @@ import { Media } from '@components/Media'
 
 const Popup = lazy(() => import('./components/Popup'))
 
-console.log('Popup', Popup);
-
-
 function App() {
   const [count, setCount] = useState(0)
   const [isPopupShown, setIsPopupShown] = useState(false)
-  const [authToken, setAuthToken] = useState(null);
+  const [authToken, setAuthToken] = useState(null); // 41658ac26be823ba677976a708de338f7e0c57bd
 
   return (
     <>

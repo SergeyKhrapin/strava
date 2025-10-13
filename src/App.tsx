@@ -1,13 +1,25 @@
-import { useState } from 'react'
+import { useState, lazy } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+// import { Popup } from '@components/Popup'
+import { Auth } from '@components/Auth'
+import { Media } from '@components/Media'
+
+const Popup = lazy(() => import('./components/Popup'))
+
+console.log('Popup', Popup);
+
 
 function App() {
   const [count, setCount] = useState(0)
+  const [isPopupShown, setIsPopupShown] = useState(false)
+  const [authToken, setAuthToken] = useState(null);
 
   return (
     <>
+      <Auth setAuthToken={setAuthToken} />
+      <Media authToken={authToken} />
       <div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
@@ -28,6 +40,11 @@ function App() {
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
       </p>
+      <button onClick={() => setIsPopupShown((isShown) => !isShown)}>
+        {`${isPopupShown ? "Hide" : "Show"} popup`}
+      </button>
+      {/* {isPopupShown ? <Suspense fallback={null}><Popup/></Suspense> : null} */}
+      {isPopupShown ? <Popup/> : null}
     </>
   )
 }

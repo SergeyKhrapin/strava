@@ -1,22 +1,36 @@
-import { useState, lazy } from 'react'
+import { useState, lazy, createContext } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 // import { Popup } from '@components/Popup'
-import { Auth } from '@components/Auth'
 import { Media } from '@components/Media'
+import Stack from '@mui/material/Stack'
+import Button from '@mui/material/Button'
+import { STRAVA_UI_URL, CLIENT_ID, REDIRECT_URL } from './constants'
+import { useAuth } from '@hooks/useAuth'
 
 const Popup = lazy(() => import('./components/Popup'))
+export const Context = createContext(null)
+
+const authUrl = `${STRAVA_UI_URL}/oauth/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URL}&scope=activity%3Aread_all`
 
 function App() {
   const [count, setCount] = useState(0)
   const [isPopupShown, setIsPopupShown] = useState(false)
-  const [authToken, setAuthToken] = useState(null); // 41658ac26be823ba677976a708de338f7e0c57bd
-
+  const authToken = useAuth()
+  
   return (
     <>
-      <Auth setAuthToken={setAuthToken} />
-      <Media authToken={authToken} />
+      {authToken ? (
+        <Context.Provider value={authToken}>
+          <Media />
+        </Context.Provider>
+      ) : (
+        <Stack>
+          <Button href={authUrl} variant="contained">Authorize</Button>
+        </Stack>
+      )}
+
       <div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />

@@ -1,2 +1,10 @@
-export const STRAVA_UI_URL = 'https://www.strava.com';
-export const STRAVA_API_URL = 'https://www.strava.com/api/v3';
+export const APP_BASE_URL = 'http://localhost:5173/'
+export const STRAVA_UI_URL = 'https://www.strava.com'
+export const STRAVA_API_URL = 'https://www.strava.com/api/v3'
+export const CLIENT_ID = '106511'
+export const CLIENT_SECRET = 'b4489c87a01e4d23f513d698043cd726427707be'
+export const SCOPE_REQUIRED = 'read,activity:read_all'
+export const GRANT_TYPE_INIT = 'authorization_code'
+export const GRANT_TYPE_REFRESH = 'refresh_token'
+// export const REDIRECT_URL = 'http://developers.strava.com/'
+export const REDIRECT_URL = 'http://localhost:5173/'

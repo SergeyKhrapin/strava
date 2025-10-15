@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { CLIENT_ID, STRAVA_UI_URL, GRANT_TYPE_INIT, CLIENT_SECRET, SCOPE_REQUIRED, APP_BASE_URL } from "src/constants"
+import { CLIENT_ID, STRAVA_UI_URL, GRANT_TYPE_INIT, CLIENT_SECRET, SCOPE_REQUIRED, ENV_VARS } from "src/constants"
 
 export const useAuth = () => {
   const [authToken, setAuthToken] = useState(null)
@@ -11,7 +11,7 @@ export const useAuth = () => {
   useEffect(() => {
     if (authCode) {
       if (scope !== SCOPE_REQUIRED) {
-        window.location.replace(APP_BASE_URL)
+        window.location.replace(ENV_VARS.APP_DOMAIN_URL)
         return
       }
       const authTokenUrl = `${STRAVA_UI_URL}/oauth/token?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&code=${authCode}&grant_type=${GRANT_TYPE_INIT}`

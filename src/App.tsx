@@ -6,13 +6,13 @@ import './App.css'
 import { Media } from '@components/Media'
 import Stack from '@mui/material/Stack'
 import Button from '@mui/material/Button'
-import { STRAVA_UI_URL, CLIENT_ID, REDIRECT_URL } from './constants'
+import { STRAVA_UI_URL, CLIENT_ID, ENV_VARS } from './constants'
 import { useAuth } from '@hooks/useAuth'
 
 // const Popup = lazy(() => import('./components/Popup'))
 export const Context = createContext(null)
 
-const authUrl = `${STRAVA_UI_URL}/oauth/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URL}&scope=activity%3Aread_all`
+const authUrl = `${STRAVA_UI_URL}/oauth/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${ENV_VARS.APP_DOMAIN_URL}&scope=activity%3Aread_all`
 
 function App() {
   // const [count, setCount] = useState(0)

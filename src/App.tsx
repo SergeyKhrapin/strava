@@ -1,6 +1,6 @@
 import { useState, lazy, createContext } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+// import reactLogo from './assets/react.svg'
+// import viteLogo from '/vite.svg'
 import './App.css'
 // import { Popup } from '@components/Popup'
 import { Media } from '@components/Media'
@@ -9,14 +9,14 @@ import Button from '@mui/material/Button'
 import { STRAVA_UI_URL, CLIENT_ID, REDIRECT_URL } from './constants'
 import { useAuth } from '@hooks/useAuth'
 
-const Popup = lazy(() => import('./components/Popup'))
+// const Popup = lazy(() => import('./components/Popup'))
 export const Context = createContext(null)
 
 const authUrl = `${STRAVA_UI_URL}/oauth/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URL}&scope=activity%3Aread_all`
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [isPopupShown, setIsPopupShown] = useState(false)
+  // const [count, setCount] = useState(0)
+  // const [isPopupShown, setIsPopupShown] = useState(false)
   const { authToken, isAuthTokenCalculating } = useAuth()
 
   console.log('authToken', authToken)
@@ -61,7 +61,7 @@ function App() {
         {`${isPopupShown ? "Hide" : "Show"} popup`}
       </button> */}
       {/* {isPopupShown ? <Suspense fallback={null}><Popup/></Suspense> : null} */}
-      {isPopupShown ? <Popup/> : null}
+      {/* {isPopupShown ? <Popup/> : null} */}
     </>
   )
 }

@@ -17,21 +17,27 @@ const authUrl = `${STRAVA_UI_URL}/oauth/authorize?response_type=code&client_id=$
 function App() {
   const [count, setCount] = useState(0)
   const [isPopupShown, setIsPopupShown] = useState(false)
-  const authToken = useAuth()
+  const { authToken, isAuthTokenCalculating } = useAuth()
+
+  console.log('authToken', authToken)
+  console.log('isAuthTokenCalculating', isAuthTokenCalculating)
   
+
   return (
     <>
-      {authToken ? (
-        <Context.Provider value={authToken}>
-          <Media />
-        </Context.Provider>
-      ) : (
-        <Stack>
-          <Button href={authUrl} variant="contained">Authorize</Button>
-        </Stack>
+      {isAuthTokenCalculating ? null : (
+        authToken ? (
+          <Context.Provider value={authToken}>
+            <Media />
+          </Context.Provider>
+        ) : (
+          <Stack>
+            <Button href={authUrl} variant="contained">Authorize</Button>
+          </Stack>
+        )
       )}
 
-      <div>
+      {/* <div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
         </a>
@@ -53,7 +59,7 @@ function App() {
       </p>
       <button onClick={() => setIsPopupShown((isShown) => !isShown)}>
         {`${isPopupShown ? "Hide" : "Show"} popup`}
-      </button>
+      </button> */}
       {/* {isPopupShown ? <Suspense fallback={null}><Popup/></Suspense> : null} */}
       {isPopupShown ? <Popup/> : null}
     </>

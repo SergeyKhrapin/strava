@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
-import { CLIENT_ID, STRAVA_UI_URL, GRANT_TYPE_INIT, CLIENT_SECRET, SCOPE_REQUIRED, APP_BASE_URL } from "src/constants";
+import { useEffect, useState } from "react"
+import { CLIENT_ID, STRAVA_UI_URL, GRANT_TYPE_INIT, CLIENT_SECRET, SCOPE_REQUIRED, APP_BASE_URL } from "src/constants"
 
 export const useAuth = () => {
   const [authToken, setAuthToken] = useState(null)
+  const [isAuthTokenCalculating, setIsAuthTokenCalculating] = useState(true)
   
   const authCode = window.location.href.split('code=')[1]?.split('&')?.[0]
   const scope = window.location.href.split('scope=')[1]?.split('&')?.[0]
@@ -10,7 +11,7 @@ export const useAuth = () => {
   useEffect(() => {
     if (authCode) {
       if (scope !== SCOPE_REQUIRED) {
-        window.location.replace(APP_BASE_URL) 
+        window.location.replace(APP_BASE_URL)
         return
       }
       const authTokenUrl = `${STRAVA_UI_URL}/oauth/token?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&code=${authCode}&grant_type=${GRANT_TYPE_INIT}`
@@ -19,9 +20,14 @@ export const useAuth = () => {
         method: 'POST'
       })
       .then((res) => res.json())
-      .then((data) => setAuthToken(data.access_token))
+      .then((data) => {
+        setAuthToken(data.access_token)
+        setIsAuthTokenCalculating(false)
+      })
+    } else {
+      setIsAuthTokenCalculating(false)
     }
-  }, [])
+  }, [authCode, scope])
 
-  return authToken;
+  return {authToken, isAuthTokenCalculating}
 }

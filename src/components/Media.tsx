@@ -12,6 +12,7 @@ import Slideshow from "yet-another-react-lightbox/plugins/slideshow"
 import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails"
 import Zoom from "yet-another-react-lightbox/plugins/zoom"
 import "yet-another-react-lightbox/plugins/thumbnails.css"
+import { showPhotosLabel, showMorePhotosLabel } from '@components/constants'
 
 
 const imageSize = 5000
@@ -29,7 +30,7 @@ export const Media = () => {
   const fetchActivities = () => {
     if (authToken) {
       setIsLoading(true)
-      
+
       fetch(activitiesUrl, {
         headers: {
           Authorization: `Bearer ${authToken}`
@@ -107,7 +108,7 @@ export const Media = () => {
   return (
     <Box>
       {!media.length ? (
-        <Button onClick={fetchActivities} loading={isLoading} variant="contained">Show photos</Button>
+        <Button onClick={fetchActivities} loading={isLoading} variant="contained">{showPhotosLabel}</Button>
       ) : null}
       {media.length ? (
         <>
@@ -120,7 +121,7 @@ export const Media = () => {
             plugins={[Fullscreen, Slideshow, Thumbnails, Zoom]}
           />
           <Box sx={{ marginTop: 2 }}>
-            <Button onClick={fetchActivities} loading={isLoading} variant="contained">Show more</Button>
+            <Button onClick={fetchActivities} loading={isLoading} variant="contained">{showMorePhotosLabel}</Button>
           </Box>
         </>
       ) : null}

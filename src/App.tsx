@@ -8,6 +8,9 @@ import Stack from '@mui/material/Stack'
 import Button from '@mui/material/Button'
 import { STRAVA_UI_URL, CLIENT_ID, ENV_VARS } from './constants'
 import { useAuth } from '@hooks/useAuth'
+import { authButtonLabel } from '@components/constants'
+import stravaBtn from './assets/strava_btn.svg'
+import Link from '@mui/material/Link'
 
 // const Popup = lazy(() => import('./components/Popup'))
 export const Context = createContext(null)
@@ -32,7 +35,9 @@ function App() {
           </Context.Provider>
         ) : (
           <Stack>
-            <Button href={authUrl} variant="contained">Authorize</Button>
+            <Link href={authUrl} sx={{ height: '48px' }}>
+              <img src={stravaBtn} alt="Strava button" />
+            </Link>
           </Stack>
         )
       )}

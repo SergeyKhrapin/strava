@@ -1,23 +1,46 @@
-import { useState, lazy } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { createContext } from 'react'
+// import reactLogo from './assets/react.svg'
+// import viteLogo from '/vite.svg'
 import './App.css'
 // import { Popup } from '@components/Popup'
-import { Auth } from '@components/Auth'
 import { Media } from '@components/Media'
+import Stack from '@mui/material/Stack'
+import { STRAVA_UI_URL, CLIENT_ID, ENV_VARS } from './constants'
+import { useAuth } from '@hooks/useAuth'
+import stravaBtn from './assets/strava_btn.svg'
+import Link from '@mui/material/Link'
 
-const Popup = lazy(() => import('./components/Popup'))
+// const Popup = lazy(() => import('./components/Popup'))
+export const Context = createContext(null)
+
+const authUrl = `${STRAVA_UI_URL}/oauth/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${ENV_VARS.APP_DOMAIN_URL}&scope=activity%3Aread_all`
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [isPopupShown, setIsPopupShown] = useState(false)
-  const [authToken, setAuthToken] = useState(null); // 41658ac26be823ba677976a708de338f7e0c57bd
+  // const [count, setCount] = useState(0)
+  // const [isPopupShown, setIsPopupShown] = useState(false)
+  const { authToken, isAuthTokenCalculating } = useAuth()
+
+  console.log('authToken', authToken)
+  console.log('isAuthTokenCalculating', isAuthTokenCalculating)
+  
 
   return (
     <>
-      <Auth setAuthToken={setAuthToken} />
-      <Media authToken={authToken} />
-      <div>
+      {isAuthTokenCalculating ? null : (
+        authToken ? (
+          <Context.Provider value={authToken}>
+            <Media />
+          </Context.Provider>
+        ) : (
+          <Stack>
+            <Link href={authUrl} sx={{ height: '48px' }}>
+              <img src={stravaBtn} alt="Strava button" />
+            </Link>
+          </Stack>
+        )
+      )}
+
+      {/* <div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
         </a>
@@ -39,9 +62,9 @@ function App() {
       </p>
       <button onClick={() => setIsPopupShown((isShown) => !isShown)}>
         {`${isPopupShown ? "Hide" : "Show"} popup`}
-      </button>
+      </button> */}
       {/* {isPopupShown ? <Suspense fallback={null}><Popup/></Suspense> : null} */}
-      {isPopupShown ? <Popup/> : null}
+      {/* {isPopupShown ? <Popup/> : null} */}
     </>
   )
 }

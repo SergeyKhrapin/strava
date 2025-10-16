@@ -9,6 +9,7 @@ import { STRAVA_UI_URL, CLIENT_ID, ENV_VARS } from './constants'
 import { useAuth } from '@hooks/useAuth'
 import stravaBtn from './assets/strava_btn.svg'
 import Link from '@mui/material/Link'
+import Alert from '@mui/material/Alert'
 
 // const Popup = lazy(() => import('./components/Popup'))
 export const Context = createContext(null)
@@ -18,21 +19,20 @@ const authUrl = `${STRAVA_UI_URL}/oauth/authorize?response_type=code&client_id=$
 function App() {
   // const [count, setCount] = useState(0)
   // const [isPopupShown, setIsPopupShown] = useState(false)
-  const { authToken, isAuthTokenCalculating } = useAuth()
-
-  console.log('authToken', authToken)
-  console.log('isAuthTokenCalculating', isAuthTokenCalculating)
+  const { authToken, isAuthInProgress, isAccessMissing } = useAuth()
   
-
   return (
     <>
-      {isAuthTokenCalculating ? null : (
+      {isAuthInProgress ? null : (
         authToken ? (
           <Context.Provider value={authToken}>
             <Media />
           </Context.Provider>
         ) : (
           <Stack>
+            {isAccessMissing ? (
+              <Alert severity="warning" sx={{ marginBottom: '2rem' }}>Please provide access to your data to be able to see photos</Alert>
+            ) : null}
             <Link href={authUrl} sx={{ height: '48px' }}>
               <img src={stravaBtn} alt="Strava button" />
             </Link>

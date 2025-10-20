@@ -10,6 +10,9 @@ import { useAuth } from '@hooks/useAuth'
 import stravaBtn from './assets/strava_btn.svg'
 import Link from '@mui/material/Link'
 import Alert from '@mui/material/Alert'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import 'dayjs/locale/en-gb'
 
 // const Popup = lazy(() => import('./components/Popup'))
 export const Context = createContext(null)
@@ -22,7 +25,7 @@ function App() {
   const { authToken, isAuthInProgress, isAccessMissing } = useAuth()
   
   return (
-    <>
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='en-gb'>
       {isAuthInProgress ? null : (
         authToken ? (
           <Context.Provider value={authToken}>
@@ -65,7 +68,7 @@ function App() {
       </button> */}
       {/* {isPopupShown ? <Suspense fallback={null}><Popup/></Suspense> : null} */}
       {/* {isPopupShown ? <Popup/> : null} */}
-    </>
+    </LocalizationProvider>
   )
 }
 

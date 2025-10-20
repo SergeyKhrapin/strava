@@ -1,8 +1,13 @@
 import { useState, useContext, useEffect } from "react"
-import Box from "@mui/material/Box"
 import { STRAVA_API_URL, STRAVA_UI_URL } from '../constants'
+import { showPhotosLabel, showMorePhotosLabel } from '@components/constants'
+import { DatePicker } from "@common/DatePicker"
 import { Context } from "src/App"
+import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
+import Typography from "@mui/material/Typography"
+import Link from "@mui/material/Link"
+import Stack from "@mui/material/Stack"
 import { RowsPhotoAlbum, type Photo } from "react-photo-album"
 import "react-photo-album/rows.css"
 import Lightbox, { type SlideImage } from "yet-another-react-lightbox"
@@ -12,17 +17,14 @@ import Slideshow from "yet-another-react-lightbox/plugins/slideshow"
 import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails"
 import Zoom from "yet-another-react-lightbox/plugins/zoom"
 import "yet-another-react-lightbox/plugins/thumbnails.css"
-import { showPhotosLabel, showMorePhotosLabel } from '@components/constants'
-import Link from "@mui/material/Link"
-import { Typography } from "@mui/material"
-
+import { type Dayjs } from "dayjs"
 
 const imageSize = 5000
 
 interface IMediaItemExtraData {
-  activityId: number;
-  activityName: string;
-  activityDate: string;
+  activityId: number
+  activityName: string
+  activityDate: string
 }
 
 export const Media = () => {
@@ -32,6 +34,12 @@ export const Media = () => {
   const [page, setPage] = useState(1)
   const [index, setIndex] = useState(-1)
   const [isLoading, setIsLoading] = useState(false)
+  const [dateFrom, setDateFrom] = useState<Dayjs | null>(null)
+  const [dateTo, setDateTo] = useState<Dayjs | null>(null)
+
+  // console.log('dateFrom', dateFrom);
+  // console.log('dateTo', dateTo);
+  
 
   const activitiesUrl = `${STRAVA_API_URL}/athlete/activities?page=${page}&per_page=30`  
 
@@ -64,21 +72,35 @@ export const Media = () => {
           // TODO: doesn't work with videos
           // TODO: double check - if it really works for photos
           if (a.total_photo_count > 0) {
-            const data = await fetch(`${STRAVA_API_URL}/activities/${a.id}/photos?size=${imageSize}`, {
-              headers: {
-                Authorization: `Bearer ${authToken}`
-              }
-            })
-            const res = await data.json()
-            res.map((item: any) => {
-              photos.push({
-                src: item.urls[imageSize],
-                width: item.sizes[imageSize][0],
-                height: item.sizes[imageSize][1],
-                activityId: a.id,
-                activityName: a.name,
-                activityDate: new Date(a.start_date_local.split('T')).toLocaleDateString()
-            })})
+            try {
+              const res = await fetch(`${STRAVA_API_URL}/activities/${a.id}/photos?size=${imageSize}`, {
+                headers: {
+                  Authorization: `Bearer ${authToken}`
+                }
+              })
+              
+              const data = await res.json()
+              data?.map((item: any) => {
+                photos.push({
+                  src: item.urls[imageSize],
+                  width: item.sizes[imageSize][0],
+                  height: item.sizes[imageSize][1],
+                  activityId: a.id,
+                  activityName: a.name,
+                  activityDate: new Date(a.start_date_local.split('T')).toLocaleDateString()
+              })})
+            } catch(e) {
+              Array.from({ length: a.total_photo_count }).map((_, i) => {
+                console.error(`Failed to fetch image for ${a.name}`)
+                photos.push({
+                  src: `https://placehold.jp/9a9a9e/ffffff/150x150.png?text=Failed%20to%20load%20this%20image&key=${i}`,
+                  width: 150,
+                  height: 150,
+                  activityId: a.id,
+                  activityName: a.name,
+                  activityDate: new Date(a.start_date_local.split('T')).toLocaleDateString()
+              })})
+            }
           }
         }
 
@@ -118,13 +140,32 @@ export const Media = () => {
   return (
     <Box>
       {!media.length ? (
-        <Button onClick={fetchActivities} loading={isLoading} variant="contained">{showPhotosLabel}</Button>
+        <Stack rowGap={2.5}>
+          <Button onClick={fetchActivities} loading={isLoading} variant="contained">{showPhotosLabel}</Button>
+          <Stack direction="row" columnGap={2}>
+            <DatePicker
+              value={dateFrom}
+              setValue={setDateFrom}
+              label="From"
+              disableFuture
+              />
+            <DatePicker
+              value={dateTo}
+              setValue={setDateTo}
+              label="To"
+              disableFuture
+            />
+          </Stack>
+        </Stack>
       ) : null}
       {media.length ? (
         <>
           <RowsPhotoAlbum photos={media as Photo[]} targetRowHeight={150} onClick={({ index }: { index: number }) => setIndex(index)} />
           <Lightbox
             slides={media}
+            carousel={{
+              finite: true
+            }}
             open={index >= 0}
             index={index}
             close={() => setIndex(-1)}

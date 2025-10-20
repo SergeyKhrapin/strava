@@ -7,7 +7,7 @@ export const useAuth = () => {
   const [isAccessMissing, setIsAccessMissing] = useState(false)
   
   const authCode = window.location.href.split('code=')[1]?.split('&')?.[0]
-  const scope = window.location.href.split('scope=')[1]?.split('&')?.[0]
+  const scope = window.location.href.split('scope=')[1]?.split('&')?.[0]  
   
   useEffect(() => {
     if (authCode) {
@@ -31,5 +31,5 @@ export const useAuth = () => {
     }
   }, [authCode, scope])
 
-  return {authToken, isAuthInProgress, isAccessMissing}
+  return { authToken, isAuthInProgress, isAccessMissing }                                                                                       
 }

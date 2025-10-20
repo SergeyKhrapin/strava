@@ -28,10 +28,12 @@ interface IMediaItemExtraData {
   activityDate: string
 }
 
+type IMediaSlide = IMediaItemExtraData & Slide
+
 export const Media = () => {
   const authToken = useContext(Context)
   const [activities, setActivities] = useState([])
-  const [media, setMedia] = useState<(Slide & IMediaItemExtraData)[]>([])
+  const [media, setMedia] = useState<IMediaSlide[]>([])
   const [page, setPage] = useState(1)
   const [index, setIndex] = useState(-1)
   const [isLoading, setIsLoading] = useState(false)
@@ -97,7 +99,7 @@ export const Media = () => {
                     width: item.sizes[imageSize][0],
                     height: item.sizes[imageSize][1],
                     ...activityUrlData
-                  })
+                  } as IMediaSlide)
                 } else {
                   slides.push({
                     src: item.urls[imageSize],
@@ -190,7 +192,7 @@ export const Media = () => {
             plugins={[Video, Fullscreen, Slideshow, Thumbnails, Zoom]}
             render={{
               slideFooter: (props) => {
-                const slide = props.slide as Slide & IMediaItemExtraData
+                const slide = props.slide as IMediaSlide
 
                 return (
                   <Typography sx={{

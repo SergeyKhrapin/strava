@@ -15,7 +15,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import 'dayjs/locale/en-gb'
 
 // const Popup = lazy(() => import('./components/Popup'))
-export const Context = createContext(null)
+export const Context = createContext<string | null>(null)
 
 const authUrl = `${STRAVA_UI_URL}/oauth/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${ENV_VARS.APP_DOMAIN_URL}&scope=activity%3Aread_all`
 
@@ -27,14 +27,17 @@ function App() {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='en-gb'>
       {isAuthInProgress ? null : (
-        authToken ? (
-          <Context.Provider value={authToken}>
+        authToken.value ? (
+          <Context.Provider value={authToken.value}>
             <Media />
           </Context.Provider>
         ) : (
           <Stack>
             {isAccessMissing ? (
-              <Alert severity="warning" sx={{ marginBottom: '2rem' }}>Please provide access to your data to be able to see photos</Alert>
+              <Alert severity="warning" sx={{ marginBottom: '2rem' }}>Please provide access to your data to be able to use IZHA app</Alert>
+            ) : null}
+            {authToken.error ? (
+              <Alert severity="error" sx={{ marginBottom: '2rem' }}>Strava API error - {authToken.error.message}. Please try again.</Alert>
             ) : null}
             <Link href={authUrl} sx={{ height: '48px' }}>
               <img src={stravaBtn} alt="Strava button" />
@@ -67,7 +70,7 @@ function App() {
         {`${isPopupShown ? "Hide" : "Show"} popup`}
       </button> */}
       {/* {isPopupShown ? <Suspense fallback={null}><Popup/></Suspense> : null} */}
-      {/* {isPopupShown ? <Popup/> : null} */}
+      {/* {isPopupShown ? <Popup count={count} /> : null} */}
     </LocalizationProvider>
   )
 }

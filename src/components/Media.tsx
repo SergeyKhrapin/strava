@@ -197,7 +197,7 @@ export const Media = () => {
                 return (
                   <Typography sx={{
                     position: 'absolute',
-                    bottom: '20px',
+                    bottom: '-6px',
                     color: '#fff'
                   }}>
                     <Link

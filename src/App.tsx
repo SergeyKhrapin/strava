@@ -1,4 +1,3 @@
-import { createContext } from 'react'
 // import reactLogo from './assets/react.svg'
 // import viteLogo from '/vite.svg'
 import './App.css'
@@ -17,23 +16,20 @@ import { ToastContainer } from 'react-toastify'
 
 
 // const Popup = lazy(() => import('./components/Popup'))
-export const Context = createContext<string | null>(null)
 
 const authUrl = `${STRAVA_UI_URL}/oauth/authorize?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${ENV_VARS.APP_DOMAIN_URL}&scope=activity%3Aread_all`
 
 function App() {
   // const [count, setCount] = useState(0)
   // const [isPopupShown, setIsPopupShown] = useState(false)
-  const { authToken, isAuthInProgress, isAccessMissing } = useAuth()
+  const { authToken, setAuthToken, isAuthInProgress, isAccessMissing } = useAuth()
   
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='en-gb'>
       <ToastContainer />
       {isAuthInProgress ? null : (
         authToken ? (
-          <Context.Provider value={authToken}>
-            <Media />
-          </Context.Provider>
+          <Media authToken={authToken} setAuthToken={setAuthToken} />
         ) : (
           <Stack>
             {isAccessMissing ? (

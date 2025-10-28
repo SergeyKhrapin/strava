@@ -1,10 +1,10 @@
-import { useState, useContext, useEffect } from "react"
-import { type Dayjs } from "dayjs"
+import { useState, useEffect, type FC } from "react"
+import dayjs, { type Dayjs } from "dayjs"
 import { toast } from 'react-toastify'
 import { STRAVA_API_URL, STRAVA_UI_URL } from '../constants'
-import { showPhotosLabel, showMorePhotosLabel, noPhotos, errorMessage } from '@components/constants'
+import { showPhotosLabel, showMorePhotosLabel, resetLabel, noPhotos, noActivities, authErrorMessage, errorMessage } from '@components/constants'
+import Grid from "@mui/material/Grid"
 import { DatePicker } from "@common/DatePicker"
-import { Context } from "src/App"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Typography from "@mui/material/Typography"
@@ -20,8 +20,14 @@ import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails"
 import Zoom from "yet-another-react-lightbox/plugins/zoom"
 import Video from "yet-another-react-lightbox/plugins/video"
 import "yet-another-react-lightbox/plugins/thumbnails.css"
+import Cookies from 'js-cookie'
 
 const imageSize = 5000
+
+interface IMedia {
+  authToken: string
+  setAuthToken: React.Dispatch<React.SetStateAction<string | null>>
+}
 
 interface IMediaItemExtraData {
   activityId: number
@@ -31,21 +37,21 @@ interface IMediaItemExtraData {
 
 type IMediaSlide = IMediaItemExtraData & Slide
 
-export const Media = () => {
-  const authToken = useContext(Context)
-
-  const [activities, setActivities] = useState([])
+export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
+  const [activities, setActivities] = useState<any[] | null>(null)
   const [media, setMedia] = useState<IMediaSlide[] | null>(null)
+  const [isMorePhotos, setIsMorePhotos] = useState(true)
   const [page, setPage] = useState(1)
   const [index, setIndex] = useState(-1)
   const [isLoading, setIsLoading] = useState(false)
   const [dateFrom, setDateFrom] = useState<Dayjs | null>(null)
   const [dateTo, setDateTo] = useState<Dayjs | null>(null)
 
-  console.log('dateFrom', dateFrom);
-  console.log('dateTo', dateTo);
-
-  const activitiesUrl = `${STRAVA_API_URL}/athlete/activities?page=${page}&per_page=30`  
+  const afterTimestamp = dayjs(dateFrom).unix()
+  const beforeTimestamp = dayjs(dateTo).set('date', dayjs(dateTo).get('date') + 1).unix() // include a selected day
+  
+  const activitiesUrl =
+    `${STRAVA_API_URL}/athlete/activities?page=${page}&per_page=30${dateTo ? '&before=' + beforeTimestamp : ''} ${dateFrom ? '&after=' + afterTimestamp : ''}`
 
   const fetchActivities = () => {
     if (authToken) {
@@ -58,14 +64,33 @@ export const Media = () => {
       })
         .then((data) => data.json())
         .then((res) => {
-          setActivities(res)
-          setPage(prev => ++prev)
+          console.log('res', res);
+          if (res.message === 'Authorization Error') {
+            setAuthToken(null)
+            Cookies.remove('access_token')
+            toast(authErrorMessage, { type: 'error' })
+          } else if (!res.length) {
+            setIsLoading(false)
+            setIsMorePhotos(false)
+            if (page === 1) {
+              toast(noActivities, { type: 'info' })
+            }
+          } else {
+            setActivities(res)
+            setPage(prev => ++prev)
+          }
         })
-        .catch((e) => {
+        .catch(() => {
           setIsLoading(false)
           toast(errorMessage, { type: 'error'})
         })
     }
+  }
+
+  const resetPhotos = () => {
+    setActivities(null)
+    setMedia(null)
+    setPage(1)
   }
 
   useEffect(() => {
@@ -73,7 +98,7 @@ export const Media = () => {
       const slides: IMediaSlide[] = []
 
       async function getActivitiesMedia() {        
-        for (const a of activities as any[]) {
+        for (const a of activities!) {
           if (a.total_photo_count > 0) {
             const activityUrlData = {
               activityId: a.id,
@@ -124,6 +149,11 @@ export const Media = () => {
           }
         }
 
+        if (!slides.length) {
+          setPage(1)
+          toast(noPhotos, { type: 'info' })
+        }
+
         setMedia((prev) => {
           if (prev === null) {
             return slides
@@ -134,46 +164,16 @@ export const Media = () => {
         setIsLoading(false)
       }
 
-      if (activities.length) {
+      if (activities?.length) {
         getActivitiesMedia()
       }
-
-
-      // Option 2
-      //  Promise.all(activities.map((a: any) => {
-      //   // TODO: doesn't work with videos
-      //   // TODO: double check - if it really works for photos
-      //   if (a.total_photo_count > 0) {
-      //     return fetch(`${STRAVA_API_URL}/activities/${a.id}/photos?size=${imageSize}`, {
-      //       headers: {
-      //         Authorization: `Bearer ${authToken}`
-      //       }
-      //     })
-      //       .then((data) => data.json())
-      //       .then((res) => {
-      //         return res.map((item: any) => ({
-      //             src: item.urls[imageSize],
-      //             width: item.sizes[imageSize][0],
-      //             height: item.sizes[imageSize][1],
-      //             activityId: a.id
-      //         }))
-      //       })            
-      //     }
-      //     return []
-      // })).then((res) => {
-      //   setMedia(res.flat())
-      // })
     }
   }, [activities, authToken])
 
-  console.log('media', media);
-  
-
   return (
-    <Box>
+    <Grid>
       {!media || !media.length ? (
         <Stack rowGap={2.5}>
-          {media?.length === 0 ? <Typography variant="subtitle1">{noPhotos}</Typography> : null}
           <Button onClick={fetchActivities} loading={isLoading} variant="contained">{showPhotosLabel}</Button>
           <Stack direction="row" columnGap={2}>
             <DatePicker
@@ -187,63 +187,77 @@ export const Media = () => {
               setValue={setDateTo}
               label="To"
               disableFuture
-            />
+              />
           </Stack>
         </Stack>
       ) : (
-        <>
-          <RowsPhotoAlbum photos={media as Photo[]} targetRowHeight={150} onClick={({ index }: { index: number }) => setIndex(index)} />
-          <Lightbox
-            slides={media}
-            carousel={{
-              finite: true
-            }}
-            open={index >= 0}
-            index={index}
-            close={() => setIndex(-1)}
-            plugins={[Video, Fullscreen, Slideshow, Thumbnails, Zoom]}
-            render={{
-              slideFooter: (props) => {
-                const slide = props.slide as IMediaSlide
-
-                return (
-                  <Typography sx={{
-                    position: 'absolute',
-                    bottom: '-6px',
-                    color: '#fff'
-                  }}>
-                    <Link
-                      href={`${STRAVA_UI_URL}/activities/${slide.activityId}`}
-                      sx={{
-                        opacity: 0.7,
-                        '&:hover': {
-                          color: '#fff',
-                          opacity: 1
-                        }
-                      }}
-                      color="inherit"
-                      underline="none"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {`${slide.activityName} ${slide.activityDate}`}
-                    </Link>
-                  </Typography>
-                )
-              }
-            }}
-            animation={{
-              swipe: 300
-            }}
-            controller={{
-              closeOnBackdropClick: true
-            }}
-          />
-          <Box sx={{ marginTop: 2 }}>
-            <Button onClick={fetchActivities} loading={isLoading} variant="contained">{showMorePhotosLabel}</Button>
+        <Stack rowGap={2}>
+          <Stack direction="row" justifyContent="center">
+            {dateFrom || dateTo ? (
+              <>
+                <Typography>{dateFrom ? dayjs(dateFrom).format('DD/MM/YYYY') : '--/--/----'}</Typography>
+                &nbsp;—&nbsp;
+                <Typography>{dateTo ? dayjs(dateTo).format('DD/MM/YYYY') : dayjs().format('DD/MM/YYYY')}</Typography>
+              </>
+            ) : null}
+          </Stack>
+          <Box>
+            <RowsPhotoAlbum photos={media as Photo[]} targetRowHeight={150} onClick={({ index }: { index: number }) => setIndex(index)} />
+            <Lightbox
+              slides={media}
+              carousel={{
+                finite: true
+              }}
+              open={index >= 0}
+              index={index}
+              close={() => setIndex(-1)}
+              plugins={[Video, Fullscreen, Slideshow, Thumbnails, Zoom]}
+              render={{
+                slideFooter: (props) => {
+                  const slide = props.slide as IMediaSlide
+                  
+                  return (
+                    <Typography sx={{
+                      position: 'absolute',
+                      bottom: '-6px',
+                      color: '#fff'
+                    }}>
+                      <Link
+                        href={`${STRAVA_UI_URL}/activities/${slide.activityId}`}
+                        sx={{
+                          opacity: 0.7,
+                          '&:hover': {
+                            color: '#fff',
+                            opacity: 1
+                          }
+                        }}
+                        color="inherit"
+                        underline="none"
+                        target="_blank"
+                        rel="noreferrer"
+                        >
+                        {`${slide.activityName} ${slide.activityDate}`}
+                      </Link>
+                    </Typography>
+                  )
+                }
+              }}
+              animation={{
+                swipe: 300
+              }}
+              controller={{
+                closeOnBackdropClick: true
+              }}
+              />
           </Box>
-        </>
+          <Box>
+            <Button sx={{ width: '130px' }} onClick={fetchActivities} loading={isLoading} disabled={!isMorePhotos} variant="contained">{showMorePhotosLabel}</Button>
+          </Box>
+          <Box>
+            <Button sx={{ width: '130px' }} onClick={resetPhotos} variant="outlined">{resetLabel}</Button>
+          </Box>
+        </Stack>
       )}
-    </Box>
+    </Grid>
   )
 }

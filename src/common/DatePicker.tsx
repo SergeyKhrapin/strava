@@ -15,7 +15,7 @@ interface IDatePicker {
 }
 
 export const DatePicker = (props: IDatePicker) => {
-  const { value, setValue, label, sxProps, disableFuture = false, withClearButton = true } = props
+  const { value, setValue, label, sxProps, disableFuture = false, withClearButton = true, ...rest } = props
 
   const ClearButton = () => {
     return (
@@ -78,6 +78,7 @@ export const DatePicker = (props: IDatePicker) => {
       }}
       minDate={dayjs('2009-01-01')}
       disableFuture={disableFuture}
+      {...rest}
     />
   )
 }

@@ -64,7 +64,6 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
       })
         .then((data) => data.json())
         .then((res) => {
-          console.log('res', res);
           if (res.message === 'Authorization Error') {
             setAuthToken(null)
             Cookies.remove('access_token')

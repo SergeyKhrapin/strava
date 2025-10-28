@@ -13,7 +13,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import 'dayjs/locale/en-gb'
 import Alert from '@mui/material/Alert'
 import { ToastContainer } from 'react-toastify'
-
+import { Analytics } from "@vercel/analytics/react"
 
 // const Popup = lazy(() => import('./components/Popup'))
 
@@ -25,49 +25,52 @@ function App() {
   const { authToken, setAuthToken, isAuthInProgress, isAccessMissing } = useAuth()
   
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='en-gb'>
-      <ToastContainer />
-      {isAuthInProgress ? null : (
-        authToken ? (
-          <Media authToken={authToken} setAuthToken={setAuthToken} />
-        ) : (
-          <Stack>
-            {isAccessMissing ? (
-              <Alert severity="warning" sx={{ marginBottom: '2rem' }}>Please provide access to your data to be able to use IZHA app</Alert>
-            ) : null}
-            <Link href={authUrl} sx={{ height: '48px' }}>
-              <img src={stravaBtn} alt="Strava button" />
-            </Link>
-          </Stack>
-        )
-      )}
+    <>
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='en-gb'>
+        <ToastContainer />
+        {isAuthInProgress ? null : (
+          authToken ? (
+            <Media authToken={authToken} setAuthToken={setAuthToken} />
+          ) : (
+            <Stack>
+              {isAccessMissing ? (
+                <Alert severity="warning" sx={{ marginBottom: '2rem' }}>Please provide access to your data to be able to use IZHA app</Alert>
+              ) : null}
+              <Link href={authUrl} sx={{ height: '48px' }}>
+                <img src={stravaBtn} alt="Strava button" />
+              </Link>
+            </Stack>
+          )
+        )}
 
-      {/* <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
+        {/* <div>
+          <a href="https://vite.dev" target="_blank">
+            <img src={viteLogo} className="logo" alt="Vite logo" />
+          </a>
+          <a href="https://react.dev" target="_blank">
+            <img src={reactLogo} className="logo react" alt="React logo" />
+          </a>
+        </div>
+        <h1>Vite + React</h1>
+        <div className="card">
+          <button onClick={() => setCount((count) => count + 1)}>
+            count is {count}
+          </button>
+          <p>
+            Edit <code>src/App.tsx</code> and save to test HMR
+          </p>
+        </div>
+        <p className="read-the-docs">
+          Click on the Vite and React logos to learn more
         </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-      <button onClick={() => setIsPopupShown((isShown) => !isShown)}>
-        {`${isPopupShown ? "Hide" : "Show"} popup`}
-      </button> */}
-      {/* {isPopupShown ? <Suspense fallback={null}><Popup/></Suspense> : null} */}
-      {/* {isPopupShown ? <Popup count={count} /> : null} */}
-    </LocalizationProvider>
+        <button onClick={() => setIsPopupShown((isShown) => !isShown)}>
+          {`${isPopupShown ? "Hide" : "Show"} popup`}
+        </button> */}
+        {/* {isPopupShown ? <Suspense fallback={null}><Popup/></Suspense> : null} */}
+        {/* {isPopupShown ? <Popup count={count} /> : null} */}
+      </LocalizationProvider>
+      <Analytics />
+    </>
   )
 }
 

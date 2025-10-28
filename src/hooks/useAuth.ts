@@ -33,7 +33,7 @@ export const useAuth = () => {
               Cookies.set('access_token', data.access_token)
               setAuthToken(data.access_token)
             })
-            .catch((e) => {
+            .catch(() => {
               toast(errorMessage, { type: 'error'})
             })
             .finally(() => {

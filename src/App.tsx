@@ -9,10 +9,12 @@ import { STRAVA_UI_URL, CLIENT_ID, ENV_VARS } from './constants'
 import { useAuth } from '@hooks/useAuth'
 import stravaBtn from './assets/strava_btn.svg'
 import Link from '@mui/material/Link'
-import Alert from '@mui/material/Alert'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import 'dayjs/locale/en-gb'
+import Alert from '@mui/material/Alert'
+import { ToastContainer } from 'react-toastify'
+
 
 // const Popup = lazy(() => import('./components/Popup'))
 export const Context = createContext<string | null>(null)
@@ -26,18 +28,16 @@ function App() {
   
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='en-gb'>
+      <ToastContainer />
       {isAuthInProgress ? null : (
-        authToken.value ? (
-          <Context.Provider value={authToken.value}>
+        authToken ? (
+          <Context.Provider value={authToken}>
             <Media />
           </Context.Provider>
         ) : (
           <Stack>
             {isAccessMissing ? (
               <Alert severity="warning" sx={{ marginBottom: '2rem' }}>Please provide access to your data to be able to use IZHA app</Alert>
-            ) : null}
-            {authToken.error ? (
-              <Alert severity="error" sx={{ marginBottom: '2rem' }}>Strava API error - {authToken.error.message}. Please try again.</Alert>
             ) : null}
             <Link href={authUrl} sx={{ height: '48px' }}>
               <img src={stravaBtn} alt="Strava button" />

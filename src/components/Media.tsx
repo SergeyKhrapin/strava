@@ -1,6 +1,8 @@
 import { useState, useContext, useEffect } from "react"
+import { type Dayjs } from "dayjs"
+import { toast } from 'react-toastify'
 import { STRAVA_API_URL, STRAVA_UI_URL } from '../constants'
-import { showPhotosLabel, showMorePhotosLabel } from '@components/constants'
+import { showPhotosLabel, showMorePhotosLabel, noPhotos, errorMessage } from '@components/constants'
 import { DatePicker } from "@common/DatePicker"
 import { Context } from "src/App"
 import Box from "@mui/material/Box"
@@ -18,7 +20,6 @@ import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails"
 import Zoom from "yet-another-react-lightbox/plugins/zoom"
 import Video from "yet-another-react-lightbox/plugins/video"
 import "yet-another-react-lightbox/plugins/thumbnails.css"
-import { type Dayjs } from "dayjs"
 
 const imageSize = 5000
 
@@ -32,17 +33,17 @@ type IMediaSlide = IMediaItemExtraData & Slide
 
 export const Media = () => {
   const authToken = useContext(Context)
+
   const [activities, setActivities] = useState([])
-  const [media, setMedia] = useState<IMediaSlide[]>([])
+  const [media, setMedia] = useState<IMediaSlide[] | null>(null)
   const [page, setPage] = useState(1)
   const [index, setIndex] = useState(-1)
   const [isLoading, setIsLoading] = useState(false)
   const [dateFrom, setDateFrom] = useState<Dayjs | null>(null)
   const [dateTo, setDateTo] = useState<Dayjs | null>(null)
 
-  // console.log('dateFrom', dateFrom);
-  // console.log('dateTo', dateTo);
-  
+  console.log('dateFrom', dateFrom);
+  console.log('dateTo', dateTo);
 
   const activitiesUrl = `${STRAVA_API_URL}/athlete/activities?page=${page}&per_page=30`  
 
@@ -55,22 +56,23 @@ export const Media = () => {
           Authorization: `Bearer ${authToken}`
         }
       })
-      .then((data) => data.json())
-      .then((res) => {
-        if (res.errors?.length) {
-          throw new Error(res.message)
-        }
-        setActivities(res)
-        setPage(prev => ++prev)
-      })
+        .then((data) => data.json())
+        .then((res) => {
+          setActivities(res)
+          setPage(prev => ++prev)
+        })
+        .catch((e) => {
+          setIsLoading(false)
+          toast(errorMessage, { type: 'error'})
+        })
     }
   }
 
   useEffect(() => {
     if (authToken) {
-      const slides: typeof media = []
+      const slides: IMediaSlide[] = []
 
-      async function getActivitiesMedia() {
+      async function getActivitiesMedia() {        
         for (const a of activities as any[]) {
           if (a.total_photo_count > 0) {
             const activityUrlData = {
@@ -122,11 +124,20 @@ export const Media = () => {
           }
         }
 
-        setMedia((prev) => prev.concat(slides))
+        setMedia((prev) => {
+          if (prev === null) {
+            return slides
+          }
+          return prev.concat(slides)
+        })
+
         setIsLoading(false)
       }
 
-      getActivitiesMedia()
+      if (activities.length) {
+        getActivitiesMedia()
+      }
+
 
       // Option 2
       //  Promise.all(activities.map((a: any) => {
@@ -156,11 +167,13 @@ export const Media = () => {
   }, [activities, authToken])
 
   console.log('media', media);
+  
 
   return (
     <Box>
-      {!media.length ? (
+      {!media || !media.length ? (
         <Stack rowGap={2.5}>
+          {media?.length === 0 ? <Typography variant="subtitle1">{noPhotos}</Typography> : null}
           <Button onClick={fetchActivities} loading={isLoading} variant="contained">{showPhotosLabel}</Button>
           <Stack direction="row" columnGap={2}>
             <DatePicker
@@ -177,8 +190,7 @@ export const Media = () => {
             />
           </Stack>
         </Stack>
-      ) : null}
-      {media.length ? (
+      ) : (
         <>
           <RowsPhotoAlbum photos={media as Photo[]} targetRowHeight={150} onClick={({ index }: { index: number }) => setIndex(index)} />
           <Lightbox
@@ -231,7 +243,7 @@ export const Media = () => {
             <Button onClick={fetchActivities} loading={isLoading} variant="contained">{showMorePhotosLabel}</Button>
           </Box>
         </>
-      ) : null}
+      )}
     </Box>
   )
 }

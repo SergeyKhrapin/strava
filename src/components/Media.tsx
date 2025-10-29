@@ -23,7 +23,7 @@ import "yet-another-react-lightbox/plugins/thumbnails.css"
 import Cookies from 'js-cookie'
 
 const imageSize = 5000
-
+const imagesPerPage = 30
 interface IMedia {
   authToken: string
   setAuthToken: React.Dispatch<React.SetStateAction<string | null>>
@@ -51,7 +51,7 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
   const beforeTimestamp = dayjs(dateTo).set('date', dayjs(dateTo).get('date') + 1).unix() // include a selected day
   
   const activitiesUrl =
-    `${STRAVA_API_URL}/athlete/activities?page=${page}&per_page=30${dateTo ? '&before=' + beforeTimestamp : ''} ${dateFrom ? '&after=' + afterTimestamp : ''}`
+    `${STRAVA_API_URL}/athlete/activities?page=${page}&per_page=${imagesPerPage}${dateTo ? '&before=' + beforeTimestamp : ''} ${dateFrom ? '&after=' + afterTimestamp : ''}`
 
   const fetchActivities = () => {
     if (authToken) {
@@ -75,6 +75,7 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
               toast(noActivities, { type: 'info' })
             }
           } else {
+            setIsMorePhotos(res.length < imagesPerPage ? false : true)
             setActivities(res)
             setPage(prev => ++prev)
           }
@@ -90,6 +91,7 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
     setActivities(null)
     setMedia(null)
     setPage(1)
+    setIsMorePhotos(true)
   }
 
   useEffect(() => {
@@ -102,7 +104,7 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
             const activityUrlData = {
               activityId: a.id,
               activityName: a.name,
-              activityDate: new Date(a.start_date_local.split('T')).toLocaleDateString()
+              activityDate: new Date(a.start_date_local).toLocaleDateString()
             }
             try {
               const res = await fetch(`${STRAVA_API_URL}/activities/${a.id}/photos?size=${imageSize}`, {

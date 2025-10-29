@@ -2,11 +2,11 @@
 
 The application provides an additional functionality to Strava app or extends it.
 
-Available feature:
+Available features:
 1. new media features
-  1. ability to see ALL media on desktop
-  1. media is shown not only in a lightbox but also as a grid on desktop
-  1. ability to filter media by date
+  - ability to see ALL media on desktop
+  - media is shown not only in a lightbox but also as a grid on desktop
+  - ability to filter media by date
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

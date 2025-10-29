@@ -170,92 +170,96 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
   }, [activities, authToken])
 
   return (
-    <Grid>
+    <Grid container justifyContent="center">
       {!media || !media.length ? (
-        <Stack rowGap={2.5}>
-          <Button onClick={fetchActivities} loading={isLoading} variant="contained">{showPhotosLabel}</Button>
-          <Stack direction="row" columnGap={2}>
-            <DatePicker
-              value={dateFrom}
-              setValue={setDateFrom}
-              label="From"
-              disableFuture
-              />
-            <DatePicker
-              value={dateTo}
-              setValue={setDateTo}
-              label="To"
-              disableFuture
-              />
+        <Grid size={10}>
+          <Stack rowGap={2.5} width="100%">
+            <Button onClick={fetchActivities} loading={isLoading} variant="contained">{showPhotosLabel}</Button>
+            <Stack direction="row" columnGap={2}>
+              <DatePicker
+                value={dateFrom}
+                setValue={setDateFrom}
+                label="From"
+                disableFuture
+                />
+              <DatePicker
+                value={dateTo}
+                setValue={setDateTo}
+                label="To"
+                disableFuture
+                />
+            </Stack>
           </Stack>
-        </Stack>
+        </Grid>
       ) : (
-        <Stack rowGap={2}>
-          <Stack direction="row" justifyContent="center">
-            {dateFrom || dateTo ? (
-              <>
-                <Typography>{dateFrom ? dayjs(dateFrom).format('DD/MM/YYYY') : '--/--/----'}</Typography>
-                &nbsp;—&nbsp;
-                <Typography>{dateTo ? dayjs(dateTo).format('DD/MM/YYYY') : dayjs().format('DD/MM/YYYY')}</Typography>
-              </>
-            ) : null}
+        <Grid size={10}>
+          <Stack rowGap={2} width="100%">
+            <Stack direction="row" justifyContent="center">
+              {dateFrom || dateTo ? (
+                <>
+                  <Typography>{dateFrom ? dayjs(dateFrom).format('DD/MM/YYYY') : '--/--/----'}</Typography>
+                  &nbsp;—&nbsp;
+                  <Typography>{dateTo ? dayjs(dateTo).format('DD/MM/YYYY') : dayjs().format('DD/MM/YYYY')}</Typography>
+                </>
+              ) : null}
+            </Stack>
+            <Box>
+              <RowsPhotoAlbum photos={media as Photo[]} targetRowHeight={150} onClick={({ index }: { index: number }) => setIndex(index)} />
+              <Lightbox
+                slides={media}
+                carousel={{
+                  finite: true
+                }}
+                open={index >= 0}
+                index={index}
+                close={() => setIndex(-1)}
+                plugins={[Video, Fullscreen, Slideshow, Thumbnails, Zoom]}
+                render={{
+                  slideFooter: (props) => {
+                    const slide = props.slide as IMediaSlide
+                    
+                    return (
+                      <Typography sx={{
+                        position: 'absolute',
+                        bottom: '-6px',
+                        color: '#fff'
+                      }}>
+                        <Link
+                          href={`${STRAVA_UI_URL}/activities/${slide.activityId}`}
+                          sx={{
+                            opacity: 0.7,
+                            '&:hover': {
+                              color: '#fff',
+                              opacity: 1
+                            }
+                          }}
+                          color="inherit"
+                          underline="none"
+                          target="_blank"
+                          rel="noreferrer"
+                          >
+                          {`${slide.activityName} ${slide.activityDate}`}
+                        </Link>
+                      </Typography>
+                    )
+                  }
+                }}
+                animation={{
+                  swipe: 300
+                }}
+                controller={{
+                  closeOnBackdropClick: true
+                }}
+                />
+            </Box>
+            <Box>
+              <Button sx={{ width: '130px' }} onClick={fetchActivities} loading={isLoading} disabled={!isMorePhotos} variant="contained">{showMorePhotosLabel}</Button>
+            </Box>
+            <Box>
+              <Button sx={{ width: '130px' }} onClick={resetPhotos} variant="outlined">{resetLabel}</Button>
+            </Box>
           </Stack>
-          <Box>
-            <RowsPhotoAlbum photos={media as Photo[]} targetRowHeight={150} onClick={({ index }: { index: number }) => setIndex(index)} />
-            <Lightbox
-              slides={media}
-              carousel={{
-                finite: true
-              }}
-              open={index >= 0}
-              index={index}
-              close={() => setIndex(-1)}
-              plugins={[Video, Fullscreen, Slideshow, Thumbnails, Zoom]}
-              render={{
-                slideFooter: (props) => {
-                  const slide = props.slide as IMediaSlide
-                  
-                  return (
-                    <Typography sx={{
-                      position: 'absolute',
-                      bottom: '-6px',
-                      color: '#fff'
-                    }}>
-                      <Link
-                        href={`${STRAVA_UI_URL}/activities/${slide.activityId}`}
-                        sx={{
-                          opacity: 0.7,
-                          '&:hover': {
-                            color: '#fff',
-                            opacity: 1
-                          }
-                        }}
-                        color="inherit"
-                        underline="none"
-                        target="_blank"
-                        rel="noreferrer"
-                        >
-                        {`${slide.activityName} ${slide.activityDate}`}
-                      </Link>
-                    </Typography>
-                  )
-                }
-              }}
-              animation={{
-                swipe: 300
-              }}
-              controller={{
-                closeOnBackdropClick: true
-              }}
-              />
-          </Box>
-          <Box>
-            <Button sx={{ width: '130px' }} onClick={fetchActivities} loading={isLoading} disabled={!isMorePhotos} variant="contained">{showMorePhotosLabel}</Button>
-          </Box>
-          <Box>
-            <Button sx={{ width: '130px' }} onClick={resetPhotos} variant="outlined">{resetLabel}</Button>
-          </Box>
-        </Stack>
+        </Grid>
       )}
     </Grid>
   )

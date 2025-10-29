@@ -172,7 +172,7 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
   return (
     <Grid container justifyContent="center">
       {!media || !media.length ? (
-        <Grid size={10}>
+        <Grid size={12}>
           <Stack rowGap={2.5} width="100%">
             <Button onClick={fetchActivities} loading={isLoading} variant="contained">{showPhotosLabel}</Button>
             <Stack direction="row" columnGap={2}>
@@ -192,7 +192,7 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
           </Stack>
         </Grid>
       ) : (
-        <Grid size={10}>
+        <Grid size={12}>
           <Stack rowGap={2} width="100%">
             <Stack direction="row" justifyContent="center">
               {dateFrom || dateTo ? (
@@ -204,7 +204,22 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
               ) : null}
             </Stack>
             <Box>
-              <RowsPhotoAlbum photos={media as Photo[]} targetRowHeight={150} onClick={({ index }: { index: number }) => setIndex(index)} />
+              <RowsPhotoAlbum
+                photos={media as Photo[]}
+                targetRowHeight={150}
+                onClick={({ index }: { index: number }) => setIndex(index)}
+                spacing={(containerWidth) => {
+                  if (containerWidth >= 1200) {
+                    return 10
+                  } else if (containerWidth < 1200 && containerWidth >= 600) {
+                    return 8
+                  } else if (containerWidth < 600 && containerWidth >= 300) {
+                    return 6
+                  } else {
+                    return 4
+                  }
+                }}
+              />
               <Lightbox
                 slides={media}
                 carousel={{

@@ -1,26 +1,22 @@
 import { useState, useEffect, type FC } from "react"
 import dayjs, { type Dayjs } from "dayjs"
 import { toast } from 'react-toastify'
-import { STRAVA_API_URL, STRAVA_UI_URL } from '../constants'
+import { STRAVA_API_URL } from '../constants'
 import { showPhotosLabel, showMorePhotosLabel, resetLabel, noPhotos, noActivities, authErrorMessage, errorMessage } from '@components/constants'
-import Grid from "@mui/material/Grid"
 import { DatePicker } from "@common/DatePicker"
+import Grid from "@mui/material/Grid"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Typography from "@mui/material/Typography"
-import Link from "@mui/material/Link"
 import Stack from "@mui/material/Stack"
-import { RowsPhotoAlbum, type Photo } from "react-photo-album"
 import "react-photo-album/rows.css"
-import Lightbox, { type Slide } from "yet-another-react-lightbox"
+import { type Slide } from "yet-another-react-lightbox"
 import "yet-another-react-lightbox/styles.css"
-import Fullscreen from "yet-another-react-lightbox/plugins/fullscreen"
-import Slideshow from "yet-another-react-lightbox/plugins/slideshow"
-import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails"
-import Zoom from "yet-another-react-lightbox/plugins/zoom"
-import Video from "yet-another-react-lightbox/plugins/video"
 import "yet-another-react-lightbox/plugins/thumbnails.css"
 import Cookies from 'js-cookie'
+import { Lightbox } from "@common/Lightbox"
+import { PhotoAlbum } from "@common/PhotoAlbum"
+import { type Photo } from "react-photo-album"
 
 const imageSize = 5000
 const imagesPerPage = 30
@@ -35,7 +31,7 @@ interface IMediaItemExtraData {
   activityDate: string
 }
 
-type IMediaSlide = IMediaItemExtraData & Slide
+export type IMediaSlide = IMediaItemExtraData & Slide
 
 export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
   const [activities, setActivities] = useState<any[] | null>(null)
@@ -206,68 +202,8 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
               ) : null}
             </Stack>
             <Box>
-              <RowsPhotoAlbum
-                photos={media as Photo[]}
-                targetRowHeight={150}
-                onClick={({ index }: { index: number }) => setIndex(index)}
-                spacing={(containerWidth) => {
-                  if (containerWidth >= 1200) {
-                    return 10
-                  } else if (containerWidth < 1200 && containerWidth >= 600) {
-                    return 8
-                  } else if (containerWidth < 600 && containerWidth >= 300) {
-                    return 6
-                  } else {
-                    return 4
-                  }
-                }}
-              />
-              <Lightbox
-                slides={media}
-                carousel={{
-                  finite: true
-                }}
-                open={index >= 0}
-                index={index}
-                close={() => setIndex(-1)}
-                plugins={[Video, Fullscreen, Slideshow, Thumbnails, Zoom]}
-                render={{
-                  slideFooter: (props) => {
-                    const slide = props.slide as IMediaSlide
-                    
-                    return (
-                      <Typography sx={{
-                        position: 'absolute',
-                        bottom: '-6px',
-                        color: '#fff'
-                      }}>
-                        <Link
-                          href={`${STRAVA_UI_URL}/activities/${slide.activityId}`}
-                          sx={{
-                            opacity: 0.7,
-                            '&:hover': {
-                              color: '#fff',
-                              opacity: 1
-                            }
-                          }}
-                          color="inherit"
-                          underline="none"
-                          target="_blank"
-                          rel="noreferrer"
-                          >
-                          {`${slide.activityName} ${slide.activityDate}`}
-                        </Link>
-                      </Typography>
-                    )
-                  }
-                }}
-                animation={{
-                  swipe: 300
-                }}
-                controller={{
-                  closeOnBackdropClick: true
-                }}
-                />
+              <PhotoAlbum photos={media as Photo[]} setIndex={setIndex} />
+              <Lightbox slides={media} index={index} setIndex={setIndex} />
             </Box>
             <Box>
               <Button sx={{ width: '130px' }} onClick={fetchActivities} loading={isLoading} disabled={!isMorePhotos} variant="contained">{showMorePhotosLabel}</Button>

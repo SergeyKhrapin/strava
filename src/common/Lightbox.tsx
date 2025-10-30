@@ -1,15 +1,19 @@
 import { type Dispatch, type FC } from "react"
 import Link from "@mui/material/Link"
 import Typography from "@mui/material/Typography"
+import { STRAVA_UI_URL } from "src/constants"
+import { type IMediaSlide } from "@components/Media"
+import { getDevice } from '@utils/getDevice'
 import ReactLightbox from "yet-another-react-lightbox"
 import Fullscreen from "yet-another-react-lightbox/plugins/fullscreen"
 import Slideshow from "yet-another-react-lightbox/plugins/slideshow"
 import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails"
 import Zoom from "yet-another-react-lightbox/plugins/zoom"
 import Video from "yet-another-react-lightbox/plugins/video"
-import { STRAVA_UI_URL } from "src/constants"
-import type { IMediaSlide } from "@components/Media"
-import { getDevice } from 'src/utils/getDevice'
+import Counter from "yet-another-react-lightbox/plugins/counter"
+import "yet-another-react-lightbox/plugins/thumbnails.css"
+import "yet-another-react-lightbox/plugins/counter.css"
+import "yet-another-react-lightbox/styles.css"
 
 interface ILightbox {
   slides: IMediaSlide[]
@@ -19,7 +23,7 @@ interface ILightbox {
 
 export const Lightbox: FC<ILightbox> = ({ slides, index, setIndex }) => {
   const { isMobile } = getDevice()
-  const plugins = [Video, Fullscreen, Slideshow, Zoom]
+  const plugins = [Video, Fullscreen, Slideshow, Zoom, Counter]
 
   if (!isMobile) {
     plugins.push(Thumbnails)
@@ -40,6 +44,11 @@ export const Lightbox: FC<ILightbox> = ({ slides, index, setIndex }) => {
         showToggle: true,
       }}
       render={{
+        ...(isMobile && {
+          iconZoomIn: () => null,
+          iconZoomOut: () => null,
+        }),
+        // TODO: pass slideFooter as a prop because Lightbox is supposed to be a common component
         slideFooter: (props) => {
           const slide = props.slide as IMediaSlide
           
@@ -52,7 +61,7 @@ export const Lightbox: FC<ILightbox> = ({ slides, index, setIndex }) => {
               <Link
                 href={`${STRAVA_UI_URL}/activities/${slide.activityId}`}
                 sx={{
-                  opacity: 0.7,
+                  opacity: 0.8,
                   '&:hover': {
                     color: '#fff',
                     opacity: 1

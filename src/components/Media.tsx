@@ -1,21 +1,22 @@
-import { useState, useEffect, type FC } from "react"
+import { useState, useEffect, type FC, useRef, useCallback } from "react"
 import dayjs, { type Dayjs } from "dayjs"
 import { toast } from 'react-toastify'
+import Cookies from 'js-cookie'
 import { STRAVA_API_URL } from '../constants'
-import { showPhotosLabel, showMorePhotosLabel, resetLabel, noPhotos, noActivities, authErrorMessage, errorMessage } from '@components/constants'
+import { showPhotosLabel, showMorePhotosLabel, resetLabel, noPhotos, noActivities, authErrorMessage, errorMessage, sortLabel, SortMedia } from '@components/constants'
 import { DatePicker } from "@common/DatePicker"
+import { Lightbox } from "@common/Lightbox"
+import { PhotoAlbum } from "@common/PhotoAlbum"
+import { sortMedia } from "@utils/sortMedia"
 import Grid from "@mui/material/Grid"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Typography from "@mui/material/Typography"
 import Stack from "@mui/material/Stack"
-import "react-photo-album/rows.css"
+import SwapVertIcon from '@mui/icons-material/SwapVert'
+import ClearIcon from '@mui/icons-material/Clear'
+import Tooltip from '@mui/material/Tooltip'
 import { type Slide } from "yet-another-react-lightbox"
-import "yet-another-react-lightbox/styles.css"
-import "yet-another-react-lightbox/plugins/thumbnails.css"
-import Cookies from 'js-cookie'
-import { Lightbox } from "@common/Lightbox"
-import { PhotoAlbum } from "@common/PhotoAlbum"
 import { type Photo } from "react-photo-album"
 
 const imageSize = 5000
@@ -34,14 +35,18 @@ interface IMediaItemExtraData {
 export type IMediaSlide = IMediaItemExtraData & Slide
 
 export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
+  const prevPage = useRef<number | null>(null)
   const [activities, setActivities] = useState<any[] | null>(null)
   const [media, setMedia] = useState<IMediaSlide[] | null>(null)
-  const [isMorePhotos, setIsMorePhotos] = useState(true)
+  const [isMoreMedia, setIsMoreMedia] = useState(true)
+  const [sorting, setSorting] = useState<keyof typeof SortMedia | null>(SortMedia.DESC)
   const [page, setPage] = useState(1)
   const [index, setIndex] = useState(-1)
   const [isLoading, setIsLoading] = useState(false)
   const [dateFrom, setDateFrom] = useState<Dayjs | null>(null)
   const [dateTo, setDateTo] = useState<Dayjs | null>(null)
+
+  const sortTooltipLabel = `${sortLabel} ${sorting === SortMedia.ASC ? '(latest > oldest)' : '(oldest > latest)'}`
 
   const afterTimestamp = dayjs(dateFrom).unix()
   const beforeTimestamp = dayjs(dateTo).set('date', dayjs(dateTo).get('date') + 1).unix() // include a selected day
@@ -66,12 +71,12 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
             toast(authErrorMessage, { type: 'error' })
           } else if (!res.length) {
             setIsLoading(false)
-            setIsMorePhotos(false)
+            setIsMoreMedia(false)
             if (page === 1) {
               toast(noActivities, { type: 'info' })
             }
           } else {
-            setIsMorePhotos(res.length < imagesPerPage ? false : true)
+            setIsMoreMedia(res.length < imagesPerPage ? false : true)
             setActivities(res)
             setPage(prev => ++prev)
           }
@@ -83,18 +88,29 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
     }
   }
 
-  const resetPhotos = () => {
+  const handleResetMedia = () => {    
     setActivities(null)
     setMedia(null)
+    setSorting(SortMedia.DESC)
     setPage(1)
-    setIsMorePhotos(true)
+    prevPage.current = null
+    setIsMoreMedia(true)
+    setDateFrom(null)
+    setDateTo(null)
   }
 
-  useEffect(() => {
+  const handleSortMedia = () => {
+    const newSorting = sorting === SortMedia.ASC ? SortMedia.DESC : SortMedia.ASC
+    
+    setMedia(currentMedia => sortMedia(currentMedia, newSorting))
+    setSorting(newSorting)
+  }
+
+  useEffect(() => {    
     if (authToken) {
       const slides: IMediaSlide[] = []
 
-      async function getActivitiesMedia() {        
+      async function getActivitiesMedia() {     
         for (const a of activities!) {
           if (a.total_photo_count > 0) {
             const activityUrlData = {
@@ -152,20 +168,27 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
         }
 
         setMedia((prev) => {
-          if (prev === null) {
-            return slides
+          const sortedSlides = sortMedia(slides, sorting)
+          const isDateFromNoDateTo = dateFrom && !dateTo
+
+          if ((sorting === SortMedia.DESC && !isDateFromNoDateTo) || (sorting === SortMedia.ASC && isDateFromNoDateTo)) {
+            return (prev ?? []).concat(sortedSlides)
+          } else if (sorting === SortMedia.ASC || (sorting === SortMedia.DESC && isDateFromNoDateTo)) {
+            return sortedSlides.concat(prev ?? [])
           }
-          return prev.concat(slides)
+          
+          return prev
         })
 
         setIsLoading(false)
+        prevPage.current = page
       }
-
-      if (activities?.length) {
+      
+      if (activities?.length && page !== prevPage.current) {
         getActivitiesMedia()
       }
     }
-  }, [activities, authToken])
+  }, [activities, authToken, dateFrom, dateTo, page, sorting])
 
   return (
     <Grid container justifyContent="center">
@@ -205,12 +228,19 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
               <PhotoAlbum photos={media as Photo[]} setIndex={setIndex} />
               <Lightbox slides={media} index={index} setIndex={setIndex} />
             </Box>
-            <Box>
-              <Button sx={{ width: '130px' }} onClick={fetchActivities} loading={isLoading} disabled={!isMorePhotos} variant="contained">{showMorePhotosLabel}</Button>
-            </Box>
-            <Box>
-              <Button sx={{ width: '130px' }} onClick={resetPhotos} variant="outlined">{resetLabel}</Button>
-            </Box>
+            <Stack flexDirection="row" justifyContent="center" columnGap={2}>
+              <Tooltip title={sortTooltipLabel}>
+                <Button onClick={handleSortMedia} variant="outlined">
+                  <SwapVertIcon />
+                </Button>
+              </Tooltip>
+              <Button sx={{ width: '130px' }} onClick={fetchActivities} loading={isLoading} disabled={!isMoreMedia} variant="contained">{showMorePhotosLabel}</Button>
+              <Tooltip title={resetLabel}>
+                <Button onClick={handleResetMedia} variant="outlined">
+                  <ClearIcon />
+                </Button>
+              </Tooltip>
+            </Stack>
           </Stack>
         </Grid>
       )}

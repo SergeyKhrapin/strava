@@ -1,5 +1,6 @@
 import { type Dispatch, type FC } from "react"
 import { RowsPhotoAlbum, type Photo } from "react-photo-album"
+import "react-photo-album/rows.css"
 
 interface IPhotoAlbum {
   photos: Photo[]

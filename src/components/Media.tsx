@@ -1,4 +1,4 @@
-import { useState, useEffect, type FC, useRef, useCallback } from "react"
+import { useState, useEffect, type FC, useRef } from "react"
 import dayjs, { type Dayjs } from "dayjs"
 import { toast } from 'react-toastify'
 import Cookies from 'js-cookie'
@@ -13,9 +13,10 @@ import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Typography from "@mui/material/Typography"
 import Stack from "@mui/material/Stack"
-import SwapVertIcon from '@mui/icons-material/SwapVert'
 import ClearIcon from '@mui/icons-material/Clear'
 import Tooltip from '@mui/material/Tooltip'
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
 import { type Slide } from "yet-another-react-lightbox"
 import { type Photo } from "react-photo-album"
 
@@ -39,7 +40,7 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
   const [activities, setActivities] = useState<any[] | null>(null)
   const [media, setMedia] = useState<IMediaSlide[] | null>(null)
   const [isMoreMedia, setIsMoreMedia] = useState(true)
-  const [sorting, setSorting] = useState<keyof typeof SortMedia | null>(SortMedia.DESC)
+  const [sorting, setSorting] = useState<keyof typeof SortMedia | null>(null)
   const [page, setPage] = useState(1)
   const [index, setIndex] = useState(-1)
   const [isLoading, setIsLoading] = useState(false)
@@ -105,6 +106,17 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
     setMedia(currentMedia => sortMedia(currentMedia, newSorting))
     setSorting(newSorting)
   }
+
+  useEffect(() => {
+    // Set initial sorting - before Show Photos button is clicked for the first time
+    if (activities === null && media === null) {      
+      if (dateFrom && !dateTo) {
+        setSorting(SortMedia.ASC)
+      } else {
+        setSorting(SortMedia.DESC)
+      }
+    }
+  }, [activities, dateFrom, dateTo, media])
 
   useEffect(() => {    
     if (authToken) {
@@ -231,7 +243,7 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
             <Stack flexDirection="row" justifyContent="center" columnGap={2}>
               <Tooltip title={sortTooltipLabel}>
                 <Button onClick={handleSortMedia} variant="outlined">
-                  <SwapVertIcon />
+                  {sorting === SortMedia.DESC ? <ArrowDownwardIcon /> : <ArrowUpwardIcon /> }
                 </Button>
               </Tooltip>
               <Button sx={{ width: '130px' }} onClick={fetchActivities} loading={isLoading} disabled={!isMoreMedia} variant="contained">{showMorePhotosLabel}</Button>

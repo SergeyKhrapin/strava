@@ -21,7 +21,7 @@ import { type Slide } from "yet-another-react-lightbox"
 import { type Photo } from "react-photo-album"
 
 const imageSize = 5000
-const imagesPerPage = 30
+const activitiesPerPage = 50
 interface IMedia {
   authToken: string
   setAuthToken: React.Dispatch<React.SetStateAction<string | null>>
@@ -53,7 +53,7 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
   const beforeTimestamp = dayjs(dateTo).set('date', dayjs(dateTo).get('date') + 1).unix() // include a selected day
   
   const activitiesUrl =
-    `${STRAVA_API_URL}/athlete/activities?page=${page}&per_page=${imagesPerPage}${dateTo ? '&before=' + beforeTimestamp : ''} ${dateFrom ? '&after=' + afterTimestamp : ''}`
+    `${STRAVA_API_URL}/athlete/activities?page=${page}&per_page=${activitiesPerPage}${dateTo ? '&before=' + beforeTimestamp : ''} ${dateFrom ? '&after=' + afterTimestamp : ''}`
 
   const fetchActivities = () => {
     if (authToken) {
@@ -77,7 +77,7 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
               toast(noActivities, { type: 'info' })
             }
           } else {
-            setIsMoreMedia(res.length < imagesPerPage ? false : true)
+            setIsMoreMedia(res.length < activitiesPerPage ? false : true)
             setActivities(res)
             setPage(prev => ++prev)
           }
@@ -122,7 +122,7 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
     if (authToken) {
       const slides: IMediaSlide[] = []
 
-      async function getActivitiesMedia() {     
+      async function getActivitiesMedia() {
         for (const a of activities!) {
           if (a.total_photo_count > 0) {
             const activityUrlData = {
@@ -197,6 +197,8 @@ export const Media: FC<IMedia> = ({ authToken, setAuthToken }) => {
       }
       
       if (activities?.length && page !== prevPage.current) {
+        console.log('getActivitiesMedia');
+        
         getActivitiesMedia()
       }
     }

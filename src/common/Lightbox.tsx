@@ -47,6 +47,8 @@ export const Lightbox: FC<ILightbox> = ({ slides, index, setIndex }) => {
         ...(isMobile && {
           iconZoomIn: () => null,
           iconZoomOut: () => null,
+          iconPrev: () => null,
+          iconNext: () => null,
         }),
         // TODO: pass slideFooter as a prop because Lightbox is supposed to be a common component
         slideFooter: (props) => {
